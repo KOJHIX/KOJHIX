@@ -1,0 +1,69 @@
+local player = game.Players.LocalPlayer
+local camera = game.Workspace.CurrentCamera
+local espEnabled = false -- Variável para controlar o estado do ESP
+
+-- Função para criar ESP
+local function createESP(player)
+    local esp = Instance.new("BillboardGui")
+    esp.Name = "ESP"
+    esp.Size = UDim2.new(2, 0, 2, 0)
+    esp.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
+    esp.AlwaysOnTop = true
+    esp.StudsOffset = Vector3.new(0, 2, 0)
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundTransparency = 0.7
+    frame.BackgroundColor3 = player.TeamColor
+    frame.BorderSizePixel = 0
+    frame.Parent = esp
+
+    esp.Parent = camera
+end
+
+-- Função para alternar o estado do ESP
+local function toggleESP()
+    espEnabled = not espEnabled
+    if espEnabled then
+        for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+            if otherPlayer ~= player then
+                createESP(otherPlayer)
+            end
+        end
+        print("ESP ativado!")
+    else
+        for _, child in pairs(camera:GetChildren()) do
+            if child.Name == "ESP" then
+                child:Destroy()
+            end
+        end
+        print("ESP desativado!")
+    end
+end
+
+-- Detecta a tecla pressionada (por exemplo, "E")
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent and input.KeyCode == Enum.KeyCode.E then
+        toggleESP()
+    end
+end)
+
+-- Carrega o módulo de aimbot
+local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Aimbot-V3/main/src/Aimbot.lua"))()
+Aimbot.Load()
+
+-- Função para calcular o FOV
+local function calculateFOV(targetPosition)
+    local playerPosition = player.Character.HumanoidRootPart.Position
+    local lookVector = (targetPosition - playerPosition).unit
+    local playerLook = camera.CFrame.LookVector
+    local angle = math.acos(playerLook:Dot(lookVector))
+    local fovDegrees = math.deg(angle)
+    return fovDegrees
+end
+
+-- Exemplo de uso do FOV
+local targetPlayer = game.Players:GetPlayers()[1] -- Substitua pelo jogador desejado
+local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+local fov = calculateFOV(targetPosition)
+print("FOV para o jogador:", fov)
